@@ -1,8 +1,8 @@
 # nfvisu
-Simple script to visualize NetFlow data
+Simple web interface to visualize NetFlow data
 
 ## Packages
-The packages are installed on a Debian 10 ADM64.
+The packages are installed on a Debian 10 AMD64.
 ```
 apt install nfdump nfcapd python3 screen vim lighttpd git
 ```
@@ -19,7 +19,7 @@ screen -r
 ```
 
 ## Configure NFvisu interface
-* Copy the *nfvisu*  folder to */var/www/html*
+* Copy the *nfvisu* directory to */var/www/html*
 ```
 git clone http://github.com/remyimt/nfvisu
 cd nfvisu
