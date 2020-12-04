@@ -31,7 +31,7 @@ cp -r nfvisu /var/www/html
   * Set the *NFCAP_DIR* variable with the nfcapd output directory (the -l option)
 * Add the crontab rule: `crontab -e`
 ```
-*/3 * * * * cd /root/nfvisu/nfvisu-backend; sleep 10; python3 site-generator.py
+*/3 * * * * cd /root/nfvisu/backend; sleep 10; python3 site-generator.py
 ```
 * As *nfcapd* generates one file every 3 minutes (180 s, the -t option),
   the *site-generator.py* script is run every 3 minutes.
