@@ -18,12 +18,16 @@ done
 if [ ! -z "$json_fix" ]; then
   # Fix the JSON files to be read by python
   for f in $(ls *.json); do
-    head -n -6 $f | sed 's/}/},/' > $f.done
-    echo "{\"nfdump\": [" > $JSON_NEW_DIR/$f
-    cat $f.done >> $JSON_NEW_DIR/$f
-    echo "}" >> $JSON_NEW_DIR/$f
-    echo "] }" >> $JSON_NEW_DIR/$f
-    rm $f*
+    if [ $(cat $f | wc -l) -gt 6 ]; then
+      head -n -6 $f | sed 's/}/},/' > $f.done
+      echo "{\"nfdump\": [" > $JSON_NEW_DIR/$f
+      cat $f.done >> $JSON_NEW_DIR/$f
+      echo "}" >> $JSON_NEW_DIR/$f
+      echo "] }" >> $JSON_NEW_DIR/$f
+      rm $f*
+    else
+      rm $NFCAP_DIR/nfcapd.$(basename $f .json)
+    fi
   done
   cp $JSON_NEW_DIR/*.json $JSON_DIR
 fi
