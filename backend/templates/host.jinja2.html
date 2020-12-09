@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NFvisu</title>
+  <link href="/css/datatables.css" rel="stylesheet">
+</head>
+
+<body>
+  <center><h2>
+      {{ hostip }}<br/>
+      Detailed Connections
+  </h2></center>
+  <a href="{{ '/%s' % datenb }}">Back to global data</a><br/><br/>
+  <h3><u>Outcoming Connections</u></h3>
+
+  {% if outports|length > 0 %}
+    <b>Local Opened Ports</b>:<br/>
+    {{ ', '.join(outports) }}<br/>
+  {% else %}
+    <b>Local Opened Ports</b>:<br/>
+    None<br/>
+  {% endif %}
+  <br/>
+
+  {% if outips|length > 0 %}
+    <b>Destination IP</b>:<br/>
+    {{ ', '.join(outips) }}<br/>
+  {% else %}
+    <b>Destination IP</b>:<br/>
+    None<br/>
+  {% endif %}
+  <br/>
+
+  <b>Connections</b>:
+  <table cellpadding="0" cellspacing="0" border="1" class="display" id="outcoming">
+	<thead>
+		<tr>
+			<th>SRC PORT</th>
+			<th>DST IP</th>
+			<th>DST PORT</th>
+			<th>PROTOCOLE</th>
+			<th>Size (bytes)</th>
+		</tr>
+	</thead>
+	<tbody>
+    {% for info in outcoming %}
+      <tr>
+        <td>{{ info.src_port }}</td>
+        <td>{{ info.dst }}</td>
+        <td>{{ info.dst_port }}</td>
+        <td>{{ info.proto }}</td>
+        <td>{{ info.size }}</td>
+      </tr>
+    {% endfor %}
+	</tfoot>
+  </table>
+
+  <h3><u>Incoming Connections</u></h3>
+  {% if inports|length > 0 %}
+    <b>Local Opened Ports</b>:<br/>
+    {{ ', '.join(inports) }}<br/>
+  {% else %}
+    <b>Local Opened Ports</b>:<br/>
+    None<br/>
+  {% endif %}
+  <br/>
+
+  {% if inips|length > 0 %}
+    <b>Destination IP</b>:<br/>
+    {{ ', '.join(inips) }}<br/>
+  {% else %}
+    <b>Destination IP</b>:<br/>
+    None<br/>
+  {% endif %}
+  <br/>
+
+  <b>Connections</b>:
+  <table cellpadding="0" cellspacing="0" border="1" class="display" id="incoming">
+	<thead>
+		<tr>
+			<th>DST PORT</th>
+      <th>SRC IP</th>
+			<th>SRC PORT</th>
+			<th>PROTOCOLE</th>
+			<th>Size (bytes)</th>
+		</tr>
+	</thead>
+	<tbody>
+    {% for info in incoming %}
+      <tr>
+        <td>{{ info.dst_port }}</td>
+        <td>{{ info.src }}</td>
+        <td>{{ info.src_port }}</td>
+        <td>{{ info.proto }}</td>
+        <td>{{ info.size }}</td>
+      </tr>
+    {% endfor %}
+	</tfoot>
+</table>
+
+<script src="/js/jquery-3.5.1.min.js"></script>
+<script src="/js/jquery.dataTables.js"></script>
+<script>
+  $(document).ready( function () {
+    $('#outcoming').DataTable();
+    $('#incoming').DataTable();
+  } );
+</script>
+</body>
+
+</html>

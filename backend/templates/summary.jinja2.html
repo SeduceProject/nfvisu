@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NFvisu</title>
+  <link href="/css/datatables.css" rel="stylesheet">
+  <link href="/css/graph.css" rel="stylesheet">
+</head>
+
+<body>
+  <a href="/history.html">Display other monitoring periods</a><br/>
+  <center><h2>
+      NetFlow data<br/>
+      {{ date_str }}
+  </h2></center>
+  <br/>
+  <center><div id="graph"></div></center>
+  <table cellpadding="0" cellspacing="0" border="1" class="display" id="example">
+	<thead>
+		<tr>
+			<th>Host</th>
+			<th>Incoming Connections</th>
+			<th>Received (bytes)</th>
+			<th>Outcoming Connections</th>
+			<th>Transmitted (bytes)</th>
+		</tr>
+	</thead>
+	<tbody>
+    {% for host in summary %}
+      <tr>
+        <td><a href="{{ '/%s/host/%s.html' % (date_nb, host.replace('.', '_')) }}">{{ host }}</a></td>
+        <td>{{ summary[host].in|length }}</td>
+        <td>{{ summary[host].received }}</td>
+        <td>{{ summary[host].out|length }}</td>
+        <td>{{ summary[host].transmitted }}</td>
+      </tr>
+    {% endfor %}
+	</tfoot>
+</table>
+
+<script src="/js/jquery-3.5.1.min.js"></script>
+<script src="/js/jquery.dataTables.js"></script>
+<script src="/js/d3.v4.min.js"></script>
+<script src="/js/graph.js"></script>
+<script>
+  $(document).ready( function () {
+    $('#example').DataTable();
+    makeGraph('/{{ date_nb }}/graph.json');
+  } );
+</script>
+</body>
+
+</html>

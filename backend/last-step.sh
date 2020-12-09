@@ -1,19 +1,36 @@
 #!/bin/bash
 
-JSON_DIR="json"
 HTML_DIR="tools"
-WWW_DIR="/var/www/html/nfvisu"
+# WARNING: If you modify this variable, update the Javascript and CSS path in jinja2 templates
+WWW_DIR="/var/www/html/"
 WWW_USER="www-data"
 
-# Generate the HTML page for the connection graph
-for f in $(find $JSON_DIR -type f -name '*.json'); do
-  number=$(echo $f | tr -dc [0-9])
-  html_file="$HTML_DIR/graph-$number.html"
-  cp graph.html $html_file
-  sed -i "s:JSONDATA:json/connections-$number.json:" $html_file
+# Create the web directory
+if [ ! -d $WWW_DIR ]; then
+  mkdir $WWW_DIR
+fi
+
+# Copy the history HTML page
+cp $HTML_DIR/history.html $WWW_DIR
+
+# Copy the Javascript files
+if [ ! -d $WWW_DIR/js ]; then
+  cp -r $HTML_DIR/js $WWW_DIR
+fi
+
+# Copy the CSS files
+if [ ! -d $WWW_DIR/css ]; then
+  cp -r $HTML_DIR/css $WWW_DIR
+fi
+
+for dir in $(find $HTML_DIR -maxdepth 1 -name "20*" | sort); do
+  dirname=$(basename $dir)
+  if [ ! -d $WWW_DIR/$dirname ]; then
+    echo $dir
+    cp -r $dir $WWW_DIR
+  fi
 done
 
-cp index.html $WWW_DIR
-cp -r $HTML_DIR $WWW_DIR
+# Copy the last index.html as the global index.html
+cp $dir/index.html $WWW_DIR/
 chown $WWW_USER.$WWW_USER -R $WWW_DIR
-rm -f $JSON_DIR/*.json

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NFvisu</title>
+</head>
+
+<body>
+  <center>
+    <h2>NetFlow History</h2>
+    {% for date in dates %}
+      <a href="{{ '/%s' % date['nb'] }}">{{ date.str }}</a><br/>
+    {% endfor %}
+  </center>
+</body>
+</html>

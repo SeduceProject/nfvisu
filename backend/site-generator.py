@@ -1,5 +1,5 @@
 from glob import glob
-import json, os, subprocess, shutil, sys
+import jinja2, json, os, subprocess, shutil, sys
 
 # Functions
 def proto(nb):
@@ -12,82 +12,121 @@ def proto(nb):
     return str(nb)
 
 
-def tr_write(fd, data, prop):
-    if prop in data:
-        if prop == "proto":
-            fd.write("    <td>%s</td>\n" % proto(data[prop]))
-        else:
-            fd.write("    <td>%s</td>\n" % data[prop])
-    else:
-        fd.write("    <td>-</td>\n")
+# Jinja2 loader
+templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
+templateEnv = jinja2.Environment(loader=templateLoader)
+
 
 # Constants
 JSON_DIR="json"
 OLD_JSON_DIR="old_json"
-GRAPH_DIR="tools/json"
 HTML_DIR="tools"
-HEADER_HTML="header.html"
-FOOTER_HTML="footer.html"
-INDEX_HTML_ORG="index.html.org"
-INDEX_HTML="index.html"
-# HTML page for the tables
-html_file=""
+
 
 # main()
+# Read nfcapd data with nfdump
 subprocess.call("./nfcap2json.sh")
-# Initialize the index.html file
-shutil.copy(INDEX_HTML_ORG, INDEX_HTML)
+# Dates with different formats to generate the history.html file
+date_fmt = []
 # Read nfdump JSON files
-for json_file in glob("%s/*.json" % JSON_DIR):
-    connections = {}
-    print(json_file)
-    with open(json_file, "r") as jsonfd:
-        data = json.load(jsonfd)["nfdump"]
-    html_file = os.path.basename(json_file).replace('json', 'html')
-    html_file = "%s/table-%s" % (HTML_DIR, html_file)
-    print(html_file)
-    shutil.copy(HEADER_HTML, html_file)
-    with open(html_file, "a") as htmltxt:
+json_files = glob("%s/*.json" % JSON_DIR)
+for json_file in json_files:
+    # Format the date of the data
+    date_nb = os.path.basename(json_file).split('.')[0]
+    date_str = "%s-%s-%s %sh%s" % (date_nb[0:4], date_nb[4:6], date_nb[6:8], date_nb[8:10], date_nb[10:12])
+    date_fmt.append({ "nb": date_nb, "str": date_str })
+    # Create the data directory
+    data_dir = "%s/%s" % (HTML_DIR, date_nb)
+    if not os.path.isdir(data_dir):
+        os.mkdir(data_dir)
+        os.mkdir("%s/host" % data_dir)
+        # Organize the NetFlow data
+        connections = {}
+        print(json_file)
+        with open(json_file, "r") as jsonfd:
+            data = json.load(jsonfd)["nfdump"]
         for flow in data:
             if "src4_addr" in flow and "dst4_addr" in flow:
-                # Generate the HTML table
-                htmltxt.write("  <tr>\n")
-                tr_write(htmltxt, flow, "src4_addr")
-                tr_write(htmltxt, flow, "src_port")
-                tr_write(htmltxt, flow, "dst4_addr")
-                tr_write(htmltxt, flow, "dst_port")
-                tr_write(htmltxt, flow, "proto")
-                tr_write(htmltxt, flow, "in_bytes")
-                htmltxt.write("  </tr>\n")
-                if flow["src4_addr"] not in [ "0.0.0.0" ]:
-                    # Generate the graph of connections
-                    src_ip = flow["src4_addr"].replace('.', '_')
-                    dst_ip = flow["dst4_addr"].replace('.', '_')
-                    if src_ip not in connections:
-                        connections[src_ip] = []
-                    if dst_ip not in connections:
-                        connections[dst_ip] = []
-                    if dst_ip not in connections[src_ip] and src_ip not in connections[dst_ip]:
-                        connections[src_ip].append(dst_ip)
-        # Append the HTML footer
-        with open(FOOTER_HTML, "r") as footer:
-            htmltxt.write(footer.read())
-    # Write the JSON file for the connections
-    flare = []
-    for node in connections:
-        flare.append({ "name": node, "imports": connections[node]})
-    with open("%s/connections-%s" % (GRAPH_DIR, os.path.basename(json_file)), "w") as flarefile:
-        json.dump(flare, flarefile, indent=4)
-
-if html_file:
-    with open(INDEX_HTML, "a") as index:
-        for json_file in sorted(glob("%s/*.json" % OLD_JSON_DIR), reverse=True):
-            date_nb = os.path.basename(json_file).replace(".json", "")
-            date_str = "%s-%s-%s %sh%s" % (date_nb[0:4], date_nb[4:6], date_nb[6:8], date_nb[8:10], date_nb[10:12])
-            index.write("     <b>%s</b><br/>\n" % date_str)
-            index.write("     <a href='%s'>table</a> / " % html_file)
-            index.write("     <a href='%s'>graph</a><br/>\n" % html_file.replace("table", "graph"))
-        index.write("  </body>\n")
-        index.write("</html>")
-    # Move the files to the WWW directory (HTTP server)
-    subprocess.call("./last-step.sh")
+                src = flow["src4_addr"]
+                dst = flow["dst4_addr"]
+                if "src_port" in flow:
+                    src_port = flow["src_port"]
+                else:
+                    src_port = -1
+                if "dst_port" in flow:
+                    dst_port = flow["dst_port"]
+                else:
+                    dst_port = -1
+                if src not in connections:
+                    connections[src] = {
+                        "out": [], "out_port": [], "out_ip": [],
+                        "in": [], "in_port": [], "in_ip": [],
+                        "transmitted": 0, "received": 0
+                    }
+                if dst not in connections:
+                    connections[dst] = {
+                        "out": [], "out_port": [], "out_ip": [],
+                        "in": [], "in_port": [], "in_ip": [],
+                        "transmitted": 0, "received": 0
+                    }
+                # Outcoming connections
+                connections[src]["out"].append({ "src_port": src_port, "dst": dst, "dst_port": dst_port,
+                    "proto": proto(flow["proto"]), "size": flow["in_bytes"]})
+                if src_port not in connections[src]["out_port"]:
+                    connections[src]["out_port"].append(src_port)
+                if dst not in connections[src]["out_ip"]:
+                    connections[src]["out_ip"].append(dst)
+                connections[src]["transmitted"] += flow["in_bytes"]
+                # Incoming connections
+                connections[dst]["in"].append({ "src": src, "src_port": src_port, "dst_port": dst_port,
+                    "proto": proto(flow["proto"]), "size": flow["in_bytes"]})
+                connections[dst]["received"] += flow["in_bytes"]
+                if dst_port not in connections[dst]["in_port"]:
+                    connections[dst]["in_port"].append(dst_port)
+                if src not in connections[dst]["in_ip"]:
+                    connections[dst]["in_ip"].append(src)
+        # JSON files to generate connection graphs
+        flare = []
+        for c in connections:
+            flare.append({
+                "name": c.replace('.', '_'), 
+                "imports": [ip.replace('.', '_') for ip in connections[c]["out_ip"]]
+            })
+        with open("%s/graph.json" % data_dir, "w") as  flarefile:
+            json.dump(flare, flarefile, indent=4)
+        # Summary HTML pages
+        summary_file = os.path.basename(json_file).replace('json', 'html')
+        summary_file = "%s/summary-%s" % (data_dir, summary_file)
+        template = templateEnv.get_template("summary.jinja2.html")
+        outputText = template.render(
+            date_str = date_str,
+            date_nb = date_nb,
+            summary = connections
+        )
+        with open("%s/index.html" % data_dir, "w") as summary:
+            summary.write(outputText)
+        # Host connection HTML pages
+        template = templateEnv.get_template("host.jinja2.html")
+        for conn in connections:
+            # NetFlow data for this host
+            outputText = template.render(
+                hostip = conn,
+                datenb = date_nb,
+                outcoming = connections[conn]["out"],
+                outports = [str(c) for c in sorted(connections[conn]["out_port"])],
+                outips = [str(c) for c in sorted(connections[conn]["out_ip"])],
+                incoming = connections[conn]["in"],
+                inports = [str(c) for c in sorted(connections[conn]["in_port"])],
+                inips = [str(c) for c in sorted(connections[conn]["in_ip"])],
+            )
+            with open("%s/host/%s.html" % (data_dir, conn.replace(".", "_")), "w") as host:
+                host.write(outputText)
+# History HTML page: one link per monitoring period
+template = templateEnv.get_template("history.jinja2.html")
+outputText = template.render(
+        dates = date_fmt
+)
+with open("%s/history.html" % HTML_DIR, "w") as history:
+    history.write(outputText)
+# Move the files to the WWW directory (HTTP server)
+subprocess.call("./last-step.sh")
