@@ -37,7 +37,7 @@ for json_file in json_files:
     date_fmt.append({ "nb": date_nb, "str": date_str })
     # Create the data directory
     data_dir = "%s/%s" % (HTML_DIR, date_nb)
-    if not os.path.isdir(data_dir):
+    if not os.path.exists(data_dir):
         os.mkdir(data_dir)
         os.mkdir("%s/host" % data_dir)
         # Organize the NetFlow data
@@ -121,6 +121,8 @@ for json_file in json_files:
             )
             with open("%s/host/%s.html" % (data_dir, conn.replace(".", "_")), "w") as host:
                 host.write(outputText)
+# Sort the dates
+date_fmt = sorted(date_fmt, key = lambda d: d['nb'], reverse=True)
 # History HTML page: one link per monitoring period
 template = templateEnv.get_template("history.jinja2.html")
 outputText = template.render(
