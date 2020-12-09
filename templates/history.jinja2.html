@@ -9,7 +9,11 @@
   <center>
     <h2>NetFlow History</h2>
     {% for date in dates %}
-      <a href="{{ '/%s' % date['nb'] }}">{{ date.str }}</a><br/>
+      {% if date == dates|first %}
+        <a href="/index.html">{{ date.str }}</a><br/>
+      {% else %}
+        <a href="{{ '/%s' % date['nb'] }}">{{ date.str }}</a><br/>
+      {% endif %}
     {% endfor %}
   </center>
 </body>

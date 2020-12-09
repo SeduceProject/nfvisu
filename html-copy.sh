@@ -36,4 +36,6 @@ done
 
 # Copy the last index.html as the global index.html
 cp $WWW_DIR/$dirname/index.html $WWW_DIR/index.html
+
+sed -i '/REFRESH /a \    window.setInterval(refreshIndexHTML, 5000);' $WWW_DIR/index.html
 chown $WWW_USER.$WWW_USER -R $WWW_DIR
