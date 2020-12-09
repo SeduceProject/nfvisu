@@ -19,7 +19,6 @@ templateEnv = jinja2.Environment(loader=templateLoader)
 
 # Constants
 JSON_DIR="json"
-OLD_JSON_DIR="old_json"
 HTML_DIR="tools"
 
 
