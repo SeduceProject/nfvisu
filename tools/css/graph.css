@@ -21,11 +21,13 @@
 }
 
 .node--source {
-  fill: #2ca02c;
+/*  fill: #2ca02c; */
+  fill: #ffac35;
 }
 
 .node--target {
-  fill: #d62728;
+/*  fill: #d62728; */
+  fill: #ffac35;
 }
 
 .link--source,
@@ -35,10 +37,11 @@
 }
 
 .link--source {
-  stroke: #d62728;
+/*  stroke: #d62728; */
+  stroke: #ffac35;
 }
 
 .link--target {
-  stroke: #2ca02c;
+/*  stroke: #2ca02c; */
+  stroke: #ffac35;
 }
-
