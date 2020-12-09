@@ -64,6 +64,6 @@ all scripts. In the following example, you install the NFvisu interface to */var
 
 ## Screenshots
 For every monitoring period (3-minutes period in the default configuration), the main page shows a graph with the connection between hosts and summarizes the NetFlow data in a table with one row per host.
-![main page for a specific period](screenshots/connection-graph.png =800x)
+<img src="https://github.com/remyimt/nfvisu/blob/main/screenshots/connection-graph.png" width="600"><br/>
 By clicking on the host, more information about its connections are presented in a table.
-![detailed information about host connections](screenshots/detailed-connections.png =800x)
+<img src="https://github.com/remyimt/nfvisu/blob/main/screenshots/detailed-connections.png" width="600"><br/>
