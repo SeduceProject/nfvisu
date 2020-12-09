@@ -131,4 +131,4 @@ outputText = template.render(
 with open("%s/history.html" % HTML_DIR, "w") as history:
     history.write(outputText)
 # Move the files to the WWW directory (HTTP server)
-subprocess.call("./last-step.sh")
+subprocess.call("./html-copy.sh")
